@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* App-level globals — mirrors the imported design's inline <style> block.
+   (Design tokens live in ./styles/tokens.css, loaded first in main.jsx.) */
+
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg-app); }
+#root { min-height: 100%; }
+
+@keyframes ps-spin { to { transform: rotate(360deg); } }
+@keyframes ps-pulse { 0%, 100% { opacity: .32 } 50% { opacity: .7 } }
+@keyframes ps-rise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+
+.ps-rise { animation: ps-rise .44s cubic-bezier(.22, 1, .36, 1) both; }
+.ps-pulse { animation: ps-pulse 1.5s ease-in-out infinite; }
+
+input::placeholder { color: var(--text-faint); }
