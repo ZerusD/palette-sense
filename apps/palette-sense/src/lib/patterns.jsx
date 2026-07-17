@@ -3,7 +3,7 @@
 // applying the palette in context on a chosen surface color.
 import React from 'react'
 import {
-  shade, readable, lum, contrast, hexToRgb, rgbToHex, rgbToHsl,
+  shade, readable, lum, contrast, hexToRgb, rgbToHex, rgbToHsl, mulberry32, hashStr,
 } from './color.js'
 
 const h = React.createElement
@@ -148,6 +148,85 @@ export function buildPattern(pid, palette, surf) {
         kids.push(h('circle', { key: 'tx' + r + c, cx: 34 + c * 13, cy: 36 + r * 13, r: 1.3, fill: neutral, opacity: 0.45 }))
       }
     }
+    return svg(kids)
+  }
+  if (pid === 'currents') {
+    // "Chromatic Currents" — seeded algorithmic art (see the DS doc in
+    // docs/product/p01-explained-palette). Each chromatic color is a body on an
+    // invisible hue wheel at its real hue angle, mass set by role; streamlines
+    // integrate through the summed swirl field. The palette is the seed, so the
+    // same palette always reproduces the identical artwork.
+    const kids = [h('rect', { key: 'bg', x: 0, y: 0, width: W, height: Hh, fill: surf })]
+    const CX = 200, CY = 125, WHEEL_R = 62
+    const roleMass = { primary: 1.0, accent: 0.45, secondary: 0.6, neutral: 0.3 }
+    const bodies = palette
+      .filter((c) => roleMass[c.role])
+      .map((c) => {
+        const hue = rgbToHsl(hexToRgb(c.hex)).h
+        const a = ((hue - 90) * Math.PI) / 180
+        return {
+          x: CX + WHEEL_R * Math.cos(a),
+          y: CY + WHEEL_R * Math.sin(a),
+          m: roleMass[c.role],
+          hex: c.hex,
+          role: c.role,
+        }
+      })
+    if (!bodies.length) return svg(kids)
+    const rng = mulberry32(hashStr(palette.map((c) => c.hex).join('') + 'currents'))
+
+    // faint hue-wheel tick ring — the silent architecture
+    kids.push(h('circle', { key: 'wheel', cx: CX, cy: CY, r: WHEEL_R + 34, fill: 'none', stroke: neutral, strokeWidth: 0.5, opacity: 0.25 }))
+
+    const field = (x, y) => {
+      let fx = 0.15, fy = -0.06 // base drift so edge lines still travel
+      for (const b of bodies) {
+        const dx = b.x - x, dy = b.y - y
+        const d = Math.sqrt(dx * dx + dy * dy) || 1
+        const fall = b.m / (1 + (d / 95) * (d / 95)) / d
+        fx += (-dy * 1.0 + dx * 0.22) * fall
+        fy += (dx * 1.0 + dy * 0.22) * fall
+      }
+      return [fx, fy]
+    }
+    const nearest = (x, y) => {
+      let best = bodies[0], bd = Infinity
+      for (const b of bodies) {
+        const d = (b.x - x) ** 2 + (b.y - y) ** 2
+        const w = d / (b.m * b.m) // heavier bodies claim more territory
+        if (w < bd) { bd = w; best = b }
+      }
+      return best
+    }
+
+    const lines = []
+    for (let i = 0; i < 64; i++) {
+      let x = rng() * 440 - 20, y = rng() * 290 - 20
+      const owner = nearest(x, y)
+      const pts = []
+      for (let s = 0; s < 46; s++) {
+        pts.push(x.toFixed(1) + ',' + y.toFixed(1))
+        const [fx, fy] = field(x, y)
+        const mag = Math.sqrt(fx * fx + fy * fy)
+        if (mag < 0.004) break
+        x += (fx / mag) * 5
+        y += (fy / mag) * 5
+        if (x < -30 || x > 430 || y < -30 || y > 280) break
+      }
+      if (pts.length > 6) lines.push({ pts: pts.join(' '), owner, o: 0.18 + rng() * 0.5 })
+    }
+    // draw calm lines first, accent wakes last (with a soft glow underlay)
+    lines.filter((l) => l.owner.role !== 'accent').forEach((l, i) =>
+      kids.push(h('polyline', { key: 'ln' + i, points: l.pts, fill: 'none', stroke: l.owner.hex, strokeWidth: 1.2, strokeLinecap: 'round', opacity: l.o })))
+    lines.filter((l) => l.owner.role === 'accent').forEach((l, i) => {
+      kids.push(h('polyline', { key: 'ag' + i, points: l.pts, fill: 'none', stroke: l.owner.hex, strokeWidth: 4, strokeLinecap: 'round', opacity: 0.12 }))
+      kids.push(h('polyline', { key: 'al' + i, points: l.pts, fill: 'none', stroke: l.owner.hex, strokeWidth: 1.6, strokeLinecap: 'round', opacity: Math.min(0.95, l.o + 0.3) }))
+    })
+    // the bodies: halo + core, sized by mass
+    bodies.forEach((b, i) => {
+      kids.push(h('circle', { key: 'halo' + i, cx: b.x, cy: b.y, r: (4 + b.m * 6) * 2.4, fill: b.hex, opacity: 0.14 }))
+      kids.push(h('circle', { key: 'body' + i, cx: b.x, cy: b.y, r: 4 + b.m * 6, fill: b.hex, opacity: 0.95 }))
+    })
     return svg(kids)
   }
   if (pid === 'editorial') {

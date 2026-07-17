@@ -19,7 +19,8 @@ export const MOODS = [
 // then the abstract studies. Fewer, richer previews by design.
 export const PATTERNS = [
   ['landing', 'Landing'], ['ui', 'Dashboard'], ['aurora', 'Aurora'],
-  ['editorial', 'Editorial'], ['type', 'Type'], ['bauhaus', 'Bauhaus'], ['blend', 'Blend'],
+  ['currents', 'Currents'], ['editorial', 'Editorial'], ['type', 'Type'],
+  ['bauhaus', 'Bauhaus'], ['blend', 'Blend'],
 ]
 
 export const EXAMPLES = [
