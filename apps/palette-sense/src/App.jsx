@@ -6,6 +6,7 @@ import React from 'react'
 import Controls from './components/Controls.jsx'
 import PaletteResult from './components/PaletteResult.jsx'
 import RationalePanel from './components/RationalePanel.jsx'
+import ProcessPage from './components/ProcessPage.jsx'
 import { LoadingState, InitialState, ErrorState } from './components/States.jsx'
 import { isHex, readable, hsl, san } from './lib/color.js'
 import { decoratePalette, MOODS } from './lib/palette.js'
@@ -18,6 +19,7 @@ const INITIAL = {
   main: '3B82C4', c2: '', c3: '', moods: [], intent: '', size: 5,
   status: 'initial', result: null, pattern: 'landing', surface: 'dark',
   copied: null, tip: false, dirty: false, hoverSwatch: null, errorKind: 'input',
+  view: 'tool', // 'tool' | 'process' — state-toggled page, no router by design
 }
 
 export default function App() {
@@ -115,6 +117,10 @@ export default function App() {
     setHoverSwatch: (idx) => setState({ hoverSwatch: idx }),
     tipOn: () => setState({ tip: true }),
     tipOff: () => setState({ tip: false }),
+    toggleProcess: () => {
+      setState({ view: stateRef.current.view === 'process' ? 'tool' : 'process' })
+      window.scrollTo(0, 0)
+    },
   }
 
   // ---- derived ----
@@ -135,25 +141,47 @@ export default function App() {
           <span style={{ font: 'var(--weight-semibold) var(--text-xl)/1 var(--font-sans)', letterSpacing: '-0.02em', color: 'var(--text-strong)' }}>Palette Sense</span>
           <span style={{ font: 'var(--type-overline)', letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', color: 'var(--text-faint)', border: '1px solid var(--border-default)', padding: '4px 8px', borderRadius: 'var(--radius-pill)' }}>color theory</span>
         </div>
-        <span style={{ font: 'var(--type-mono)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Pick a color · set a mood · understand every choice</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ font: 'var(--type-mono)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Pick a color · set a mood · understand every choice</span>
+          <button
+            onClick={h.toggleProcess}
+            style={{
+              appearance: 'none', cursor: 'pointer',
+              font: 'var(--type-overline)', letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase',
+              padding: '4px 8px', borderRadius: 'var(--radius-pill)',
+              background: state.view === 'process' ? 'var(--accent-soft)' : 'none',
+              border: '1px solid ' + (state.view === 'process' ? 'var(--accent-soft-bd)' : 'var(--border-default)'),
+              color: state.view === 'process' ? 'var(--coral-200)' : 'var(--text-faint)',
+              transition: 'all var(--dur-fast) var(--ease-out)',
+            }}
+          >
+            Process
+          </button>
+        </div>
       </header>
 
       {/* main */}
       <main style={{ position: 'relative', maxWidth: 1264, margin: '0 auto', padding: '0 32px' }}>
-        <Controls state={state} h={h} accent={accent} mainValid={mainValid} />
+        {state.view === 'process' ? (
+          <ProcessPage onBack={h.toggleProcess} />
+        ) : (
+          <>
+            <Controls state={state} h={h} accent={accent} mainValid={mainValid} />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.55fr) minmax(332px,1fr)', gap: 26, marginTop: 26, alignItems: 'start' }}>
-          <div style={{ minWidth: 0 }}>
-            {state.status === 'result' && state.result && <PaletteResult result={state.result} ui={state} h={h} />}
-            {state.status === 'generating' && <LoadingState size={state.size} />}
-            {state.status === 'initial' && <InitialState onUse={h.useExample} />}
-            {state.status === 'error' && <ErrorState kind={state.errorKind} onRetry={h.retry} />}
-          </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.55fr) minmax(332px,1fr)', gap: 26, marginTop: 26, alignItems: 'start' }}>
+              <div style={{ minWidth: 0 }}>
+                {state.status === 'result' && state.result && <PaletteResult result={state.result} ui={state} h={h} />}
+                {state.status === 'generating' && <LoadingState size={state.size} />}
+                {state.status === 'initial' && <InitialState onUse={h.useExample} />}
+                {state.status === 'error' && <ErrorState kind={state.errorKind} onRetry={h.retry} />}
+              </div>
 
-          <aside style={{ position: 'sticky', top: 18 }}>
-            <RationalePanel status={state.status} result={state.result} showWheel={SHOW_WHEEL} />
-          </aside>
-        </div>
+              <aside style={{ position: 'sticky', top: 18 }}>
+                <RationalePanel status={state.status} result={state.result} showWheel={SHOW_WHEEL} />
+              </aside>
+            </div>
+          </>
+        )}
       </main>
     </div>
   )
