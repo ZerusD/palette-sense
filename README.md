@@ -19,7 +19,8 @@ React + Vite + Tailwind SPA · one Vercel serverless function · Anthropic API (
 
 ## Status
 
-v1 built and verified locally: the imported Claude Design UI, the KB-grounded
-single-call `/api/generate`, validation, and the real-world "palette in
-context" previews live in [`apps/palette-sense/`](apps/palette-sense/) (see its
-README for run/deploy instructions). Vercel deploy: in progress.
+**v1 live: <https://palette-sense-eosin.vercel.app>** — the imported Claude
+Design UI, the KB-grounded single-call `/api/generate`, validation, and the
+real-world "palette in context" previews. Code in
+[`apps/palette-sense/`](apps/palette-sense/) (see its README for local
+run/deploy instructions).
