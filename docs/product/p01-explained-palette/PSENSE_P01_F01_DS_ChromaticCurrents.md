@@ -56,3 +56,10 @@ and leaving as if the weather continued beyond the glass.
 | Field | swirl 1.0 + pull 0.22, falloff 1/(1+(d/95)²) | coherent currents, no black-hole collapse |
 | Streamlines | 64 seeds × ≤46 steps × 5px | density with breath |
 | Seed | fnv-hash of palette hexes | the palette is the artwork's DNA |
+
+## Status note
+
+2026-07-18: the in-app `currents` preview was superseded by the Dynamic
+landing's animated lattice ground — motion over trace, applied to a real web
+surface. This doc remains the record of the movement and the palette-seeded
+flow-field exploration that shaped the generative direction.

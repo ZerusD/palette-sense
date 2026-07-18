@@ -18,9 +18,9 @@ export const MOODS = [
 // Real-world surfaces first (the "visualize your colors in action" piece),
 // then the abstract studies. Fewer, richer previews by design.
 export const PATTERNS = [
-  ['landing', 'Landing'], ['ui', 'Dashboard'], ['aurora', 'Aurora'],
-  ['currents', 'Currents'], ['editorial', 'Editorial'], ['type', 'Type'],
-  ['bauhaus', 'Bauhaus'], ['blend', 'Blend'],
+  ['landing', 'Landing'], ['dynamic', 'Dynamic'], ['uiset', 'UI set'],
+  ['ui', 'Dashboard'], ['editorial', 'Editorial'], ['aurora', 'Aurora'],
+  ['type', 'Type'], ['bauhaus', 'Bauhaus'], ['blend', 'Blend'],
 ]
 
 export const EXAMPLES = [

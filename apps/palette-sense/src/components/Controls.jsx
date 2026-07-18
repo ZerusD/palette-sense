@@ -78,6 +78,14 @@ export default function Controls({ state, h, accent, mainValid }) {
         boxShadow: 'var(--edge-top)', borderRadius: 'var(--radius-lg)', padding: '22px 24px 24px',
       }}
     >
+      {/* card header: the discipline label + the promise, relocated from the nav */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 22 }}>
+        <span style={{ ...overline, color: 'var(--text-secondary)' }}>Color theory</span>
+        <span style={{ font: 'var(--type-mono)', fontSize: 'var(--text-xs)', color: 'var(--text-faint)' }}>
+          Pick a color · set a mood · understand every choice
+        </span>
+      </div>
+
       {/* color inputs */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 28 }}>
         {/* main */}

@@ -11,7 +11,19 @@ body { background: var(--bg-app); }
 @keyframes ps-pulse { 0%, 100% { opacity: .32 } 50% { opacity: .7 } }
 @keyframes ps-rise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
 
+/* Dynamic-landing lattice: each dot rests dim, then a passing wave (staggered
+   per-dot via animation-delay = distance / wave speed) lifts and brightens it. */
+@keyframes ps-lattice {
+  0%, 30%, 100% { opacity: .16; transform: scale(1); }
+  10% { opacity: .9; transform: scale(2); }
+}
+
 .ps-rise { animation: ps-rise .44s cubic-bezier(.22, 1, .36, 1) both; }
 .ps-pulse { animation: ps-pulse 1.5s ease-in-out infinite; }
+.ps-dot { animation: ps-lattice 3s linear infinite; transform-box: fill-box; transform-origin: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-dot, .ps-pulse, .ps-rise { animation: none; }
+}
 
 input::placeholder { color: var(--text-faint); }

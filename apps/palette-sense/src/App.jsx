@@ -7,6 +7,7 @@ import Controls from './components/Controls.jsx'
 import PaletteResult from './components/PaletteResult.jsx'
 import RationalePanel from './components/RationalePanel.jsx'
 import ProcessPage from './components/ProcessPage.jsx'
+import Button from './components/ui/Button.jsx'
 import { LoadingState, InitialState, ErrorState } from './components/States.jsx'
 import { isHex, readable, hsl, san } from './lib/color.js'
 import { decoratePalette, MOODS } from './lib/palette.js'
@@ -134,30 +135,22 @@ export default function App() {
     <div style={{ position: 'relative', minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)', font: 'var(--type-body)', paddingBottom: 64, overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: '0 0 auto 0', height: 320, pointerEvents: 'none', background: 'radial-gradient(62% 100% at 50% -36%, color-mix(in oklab, ' + accentColor + ' 8%, transparent), transparent 72%)' }} />
 
-      {/* header */}
+      {/* header — brand left, one clear action right */}
       <header style={{ position: 'relative', maxWidth: 1264, margin: '0 auto', padding: '26px 32px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ width: 9, height: 9, borderRadius: '50%', background: accentColor, boxShadow: '0 0 10px ' + accentColor, flex: 'none' }} />
           <span style={{ font: 'var(--weight-semibold) var(--text-xl)/1 var(--font-sans)', letterSpacing: '-0.02em', color: 'var(--text-strong)' }}>Palette Sense</span>
-          <span style={{ font: 'var(--type-overline)', letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', color: 'var(--text-faint)', border: '1px solid var(--border-default)', padding: '4px 8px', borderRadius: 'var(--radius-pill)' }}>color theory</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ font: 'var(--type-mono)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Pick a color · set a mood · understand every choice</span>
-          <button
-            onClick={h.toggleProcess}
-            style={{
-              appearance: 'none', cursor: 'pointer',
-              font: 'var(--type-overline)', letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase',
-              padding: '4px 8px', borderRadius: 'var(--radius-pill)',
-              background: state.view === 'process' ? 'var(--accent-soft)' : 'none',
-              border: '1px solid ' + (state.view === 'process' ? 'var(--accent-soft-bd)' : 'var(--border-default)'),
-              color: state.view === 'process' ? 'var(--coral-200)' : 'var(--text-faint)',
-              transition: 'all var(--dur-fast) var(--ease-out)',
-            }}
-          >
-            Process
-          </button>
-        </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={h.toggleProcess}
+          style={state.view === 'process'
+            ? { background: 'var(--accent-soft)', borderColor: 'var(--accent-soft-bd)', color: 'var(--coral-200)' }
+            : undefined}
+        >
+          Process
+        </Button>
       </header>
 
       {/* main */}

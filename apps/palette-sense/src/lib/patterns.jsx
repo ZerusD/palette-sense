@@ -3,7 +3,7 @@
 // applying the palette in context on a chosen surface color.
 import React from 'react'
 import {
-  shade, readable, lum, contrast, hexToRgb, rgbToHex, rgbToHsl, mulberry32, hashStr,
+  shade, readable, lum, contrast, hexToRgb, rgbToHex, rgbToHsl,
 } from './color.js'
 
 const h = React.createElement
@@ -60,12 +60,15 @@ export function buildPattern(pid, palette, surf) {
 
   if (pid === 'landing') {
     const kids = [h('rect', { key: 'bg', x: 0, y: 0, width: W, height: Hh, fill: surf })]
-    // ambient accent glow behind the hero (the "alive" moment)
+    // ambient glow: three overlapping palette washes softened by a heavy blur —
+    // reads as atmosphere, not a shape with a fade
     kids.push(h('defs', { key: 'd' },
-      h('radialGradient', { id: 'psheroglow' },
-        h('stop', { offset: '0%', stopColor: accent, stopOpacity: 0.45 }),
-        h('stop', { offset: '100%', stopColor: accent, stopOpacity: 0 }))))
-    kids.push(h('ellipse', { key: 'glow', cx: 330, cy: 42, rx: 160, ry: 115, fill: 'url(#psheroglow)' }))
+      h('filter', { id: 'pslglow', x: '-80%', y: '-80%', width: '260%', height: '260%' },
+        h('feGaussianBlur', { stdDeviation: 28 }))))
+    kids.push(h('g', { key: 'glow', filter: 'url(#pslglow)' },
+      h('ellipse', { key: 'g1', cx: 344, cy: 30, rx: 120, ry: 84, fill: accent, opacity: 0.3 }),
+      h('ellipse', { key: 'g2', cx: 254, cy: 92, rx: 88, ry: 66, fill: primary, opacity: 0.2 }),
+      h('ellipse', { key: 'g3', cx: 398, cy: 152, rx: 68, ry: 54, fill: secondary, opacity: 0.16 })))
     // nav
     kids.push(h('circle', { key: 'logo', cx: 30, cy: 26, r: 5, fill: accent }))
     kids.push(h('text', { key: 'brand', x: 42, y: 30, fill: ink, style: { font: '700 11px var(--font-sans)', letterSpacing: '-0.02em' } }, 'palette'))
@@ -150,84 +153,11 @@ export function buildPattern(pid, palette, surf) {
     }
     return svg(kids)
   }
-  if (pid === 'currents') {
-    // "Chromatic Currents" — seeded algorithmic art (see the DS doc in
-    // docs/product/p01-explained-palette). Each chromatic color is a body on an
-    // invisible hue wheel at its real hue angle, mass set by role; streamlines
-    // integrate through the summed swirl field. The palette is the seed, so the
-    // same palette always reproduces the identical artwork.
-    const kids = [h('rect', { key: 'bg', x: 0, y: 0, width: W, height: Hh, fill: surf })]
-    const CX = 200, CY = 125, WHEEL_R = 62
-    const roleMass = { primary: 1.0, accent: 0.45, secondary: 0.6, neutral: 0.3 }
-    const bodies = palette
-      .filter((c) => roleMass[c.role])
-      .map((c) => {
-        const hue = rgbToHsl(hexToRgb(c.hex)).h
-        const a = ((hue - 90) * Math.PI) / 180
-        return {
-          x: CX + WHEEL_R * Math.cos(a),
-          y: CY + WHEEL_R * Math.sin(a),
-          m: roleMass[c.role],
-          hex: c.hex,
-          role: c.role,
-        }
-      })
-    if (!bodies.length) return svg(kids)
-    const rng = mulberry32(hashStr(palette.map((c) => c.hex).join('') + 'currents'))
-
-    // faint hue-wheel tick ring — the silent architecture
-    kids.push(h('circle', { key: 'wheel', cx: CX, cy: CY, r: WHEEL_R + 34, fill: 'none', stroke: neutral, strokeWidth: 0.5, opacity: 0.25 }))
-
-    const field = (x, y) => {
-      let fx = 0.15, fy = -0.06 // base drift so edge lines still travel
-      for (const b of bodies) {
-        const dx = b.x - x, dy = b.y - y
-        const d = Math.sqrt(dx * dx + dy * dy) || 1
-        const fall = b.m / (1 + (d / 95) * (d / 95)) / d
-        fx += (-dy * 1.0 + dx * 0.22) * fall
-        fy += (dx * 1.0 + dy * 0.22) * fall
-      }
-      return [fx, fy]
-    }
-    const nearest = (x, y) => {
-      let best = bodies[0], bd = Infinity
-      for (const b of bodies) {
-        const d = (b.x - x) ** 2 + (b.y - y) ** 2
-        const w = d / (b.m * b.m) // heavier bodies claim more territory
-        if (w < bd) { bd = w; best = b }
-      }
-      return best
-    }
-
-    const lines = []
-    for (let i = 0; i < 64; i++) {
-      let x = rng() * 440 - 20, y = rng() * 290 - 20
-      const owner = nearest(x, y)
-      const pts = []
-      for (let s = 0; s < 46; s++) {
-        pts.push(x.toFixed(1) + ',' + y.toFixed(1))
-        const [fx, fy] = field(x, y)
-        const mag = Math.sqrt(fx * fx + fy * fy)
-        if (mag < 0.004) break
-        x += (fx / mag) * 5
-        y += (fy / mag) * 5
-        if (x < -30 || x > 430 || y < -30 || y > 280) break
-      }
-      if (pts.length > 6) lines.push({ pts: pts.join(' '), owner, o: 0.18 + rng() * 0.5 })
-    }
-    // draw calm lines first, accent wakes last (with a soft glow underlay)
-    lines.filter((l) => l.owner.role !== 'accent').forEach((l, i) =>
-      kids.push(h('polyline', { key: 'ln' + i, points: l.pts, fill: 'none', stroke: l.owner.hex, strokeWidth: 1.2, strokeLinecap: 'round', opacity: l.o })))
-    lines.filter((l) => l.owner.role === 'accent').forEach((l, i) => {
-      kids.push(h('polyline', { key: 'ag' + i, points: l.pts, fill: 'none', stroke: l.owner.hex, strokeWidth: 4, strokeLinecap: 'round', opacity: 0.12 }))
-      kids.push(h('polyline', { key: 'al' + i, points: l.pts, fill: 'none', stroke: l.owner.hex, strokeWidth: 1.6, strokeLinecap: 'round', opacity: Math.min(0.95, l.o + 0.3) }))
-    })
-    // the bodies: halo + core, sized by mass
-    bodies.forEach((b, i) => {
-      kids.push(h('circle', { key: 'halo' + i, cx: b.x, cy: b.y, r: (4 + b.m * 6) * 2.4, fill: b.hex, opacity: 0.14 }))
-      kids.push(h('circle', { key: 'body' + i, cx: b.x, cy: b.y, r: 4 + b.m * 6, fill: b.hex, opacity: 0.95 }))
-    })
-    return svg(kids)
+  if (pid === 'dynamic') {
+    return h(DynamicLanding, { surf, ink, sub, primary, accent, neutral, isDark })
+  }
+  if (pid === 'uiset') {
+    return h(UISet, { surf, ink, sub, panel, hair, primary, accent, secondary, neutral, isDark })
   }
   if (pid === 'editorial') {
     const kids = [h('rect', { key: 'bg', x: 0, y: 0, width: W, height: Hh, fill: surf })]
@@ -290,6 +220,161 @@ export function buildPattern(pid, palette, surf) {
     return svg([h('rect', { key: 'bg', x: 0, y: 0, width: W, height: Hh, fill: base }), defs, h('g', { key: 'g', filter: 'url(#' + fid + ')' }, blobs)])
   }
   return svg([h('rect', { key: 'bg', x: 0, y: 0, width: W, height: Hh, fill: surf })])
+}
+
+// ---- Dynamic landing: a centered hero over an animated lattice ground.
+// Algorithmic motion, zero randomness: every dot's animation-delay is its
+// distance from the focal point divided by the wave speed, so a pulse crest
+// radiates outward in sync with the SMIL wavefront ring. Palette-driven;
+// honors prefers-reduced-motion via the .ps-dot CSS guard.
+function DynamicLanding({ surf, ink, sub, primary, accent, neutral }) {
+  const FX = 200, FY = 112, SPEED = 140 // px per second — matches the ring
+  const dots = []
+  for (let gx = 12; gx <= 396; gx += 24) {
+    for (let gy = 12; gy <= 244; gy += 24) {
+      const d = Math.sqrt((gx - FX) ** 2 + (gy - FY) ** 2)
+      dots.push(
+        <circle
+          key={gx + '-' + gy}
+          className="ps-dot"
+          cx={gx} cy={gy} r={1.5}
+          fill={d < 60 ? primary : neutral}
+          style={{ animationDelay: (d / SPEED).toFixed(2) + 's' }}
+        />,
+      )
+    }
+  }
+  const onPrimary = readable(primary)
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', background: surf, overflow: 'hidden' }}>
+      <svg viewBox="0 0 400 250" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style={{ position: 'absolute', inset: 0 }}>
+        {dots}
+        {/* the wavefront the dots are answering */}
+        <circle cx={FX} cy={FY} r={0} fill="none" stroke={primary} strokeWidth={0.75}>
+          <animate attributeName="r" from="0" to="420" dur="3s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.4;0.12;0" keyTimes="0;0.6;1" dur="3s" repeatCount="indefinite" />
+        </circle>
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', padding: '4.5% 6%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, font: '700 13px var(--font-sans)', letterSpacing: '-0.02em', color: ink }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: accent }} />lattice
+          </span>
+          <span style={{ font: '500 11px var(--font-sans)', color: sub }}>Sign in</span>
+        </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
+          <span style={{ font: '500 9px var(--font-mono)', letterSpacing: '0.16em', color: accent, border: '1px solid color-mix(in oklab, ' + accent + ' 40%, transparent)', borderRadius: 999, padding: '4px 10px' }}>
+            SHIPPING NOW
+          </span>
+          <div style={{ font: '700 34px/1.08 var(--font-sans)', letterSpacing: '-0.045em', color: ink }}>
+            Move with <span style={{ color: accent }}>intent.</span>
+          </div>
+          <div style={{ font: '400 12px var(--font-sans)', color: sub }}>
+            A landing that breathes — your palette, in motion.
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 6 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', height: 32, padding: '0 18px', borderRadius: 7, background: primary, color: onPrimary, font: '600 12px var(--font-sans)' }}>
+              Start free
+            </span>
+            <span style={{ font: '600 12px var(--font-sans)', color: ink }}>Watch demo →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ---- Interactive UI set: real components with real state — hover, focus,
+// toggle, selection — but no app function. Shows the palette doing the jobs
+// roles exist for: primary acts, accent marks "on", neutral rests.
+function UISet({ surf, ink, sub, panel, hair, primary, accent, secondary, neutral, isDark }) {
+  const [hov, setHov] = React.useState(null)
+  const [on, setOn] = React.useState(true)
+  const [seg, setSeg] = React.useState('Night')
+  const [focus, setFocus] = React.useState(false)
+  const onPrimary = readable(primary)
+  const fieldBg = isDark ? shade(surf, -3) : '#ffffff'
+
+  const btnBase = {
+    display: 'inline-flex', alignItems: 'center', height: 34, padding: '0 16px',
+    borderRadius: 6, font: '600 12.5px var(--font-sans)', letterSpacing: '-0.01em',
+    cursor: 'pointer', border: '1px solid transparent',
+    transition: 'all 140ms cubic-bezier(.22,1,.36,1)',
+  }
+  const label = { font: '500 8.5px var(--font-mono)', letterSpacing: '0.14em', color: sub, textTransform: 'uppercase' }
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', background: surf, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 26 }}>
+      <div style={{ width: '100%', maxWidth: 470, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <span style={label}>Component set</span>
+          <span style={{ font: '400 9px var(--font-mono)', color: sub, opacity: 0.8 }}>interactive · hover &amp; click</span>
+        </div>
+
+        {/* buttons */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+          <button
+            onMouseEnter={() => setHov('p')} onMouseLeave={() => setHov(null)}
+            style={{ ...btnBase, background: primary, color: onPrimary,
+              filter: hov === 'p' ? 'brightness(1.12)' : 'none',
+              boxShadow: hov === 'p' ? '0 0 18px color-mix(in oklab, ' + primary + ' 45%, transparent)' : 'none' }}
+          >Generate</button>
+          <button
+            onMouseEnter={() => setHov('s')} onMouseLeave={() => setHov(null)}
+            style={{ ...btnBase, background: hov === 's' ? shade(panel, isDark ? 5 : -5) : panel, color: ink, borderColor: hov === 's' ? sub : hair }}
+          >Preview</button>
+          <button
+            onMouseEnter={() => setHov('g')} onMouseLeave={() => setHov(null)}
+            style={{ ...btnBase, background: hov === 'g' ? panel : 'transparent', color: hov === 'g' ? ink : sub }}
+          >Docs</button>
+        </div>
+
+        {/* field + toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <input
+            defaultValue="" placeholder="Palette name…" spellCheck={false}
+            onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
+            style={{ flex: 1, minWidth: 0, height: 34, padding: '0 12px', background: fieldBg, color: ink,
+              border: '1px solid ' + (focus ? primary : hair), borderRadius: 6, outline: 'none',
+              font: '400 12.5px var(--font-sans)',
+              boxShadow: focus ? '0 0 0 3px color-mix(in oklab, ' + primary + ' 25%, transparent)' : 'none',
+              transition: 'border-color 140ms, box-shadow 140ms' }}
+          />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, cursor: 'pointer' }} onClick={() => setOn(!on)}>
+            <span style={{ position: 'relative', width: 40, height: 22, borderRadius: 999, background: on ? accent : hair, transition: 'background 160ms', flex: 'none' }}>
+              <span style={{ position: 'absolute', top: 3, left: on ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: fieldBg, transition: 'left 160ms cubic-bezier(.34,1.56,.64,1)' }} />
+            </span>
+            <span style={{ font: '500 11px var(--font-sans)', color: on ? ink : sub, transition: 'color 160ms' }}>Motion</span>
+          </div>
+        </div>
+
+        {/* segmented + badges */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+          <div style={{ display: 'inline-flex', gap: 2, padding: 3, background: fieldBg, border: '1px solid ' + hair, borderRadius: 6 }}>
+            {['Day', 'Night', 'Auto'].map((o) => (
+              <button key={o} onClick={() => setSeg(o)}
+                style={{ height: 26, padding: '0 13px', border: 'none', cursor: 'pointer', borderRadius: 4,
+                  background: seg === o ? 'color-mix(in oklab, ' + accent + ' 20%, transparent)' : 'transparent',
+                  color: seg === o ? ink : sub, font: '500 11px var(--font-sans)', transition: 'all 140ms' }}
+              >{o}</button>
+            ))}
+          </div>
+          <span style={{ display: 'inline-flex', alignItems: 'center', height: 20, padding: '0 9px', borderRadius: 999, background: accent, color: readable(accent), font: '600 10px var(--font-sans)' }}>New</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', height: 20, padding: '0 9px', borderRadius: 999, border: '1px solid ' + secondary, color: secondary, font: '600 10px var(--font-sans)' }}>Beta</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', height: 20, padding: '0 9px', borderRadius: 999, background: 'color-mix(in oklab, ' + neutral + ' 24%, transparent)', color: ink, font: '600 10px var(--font-sans)' }}>Stable</span>
+        </div>
+
+        {/* progress */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={label}>Sync</span>
+          <div style={{ flex: 1, height: 6, borderRadius: 999, background: 'color-mix(in oklab, ' + ink + ' 12%, transparent)', overflow: 'hidden' }}>
+            <div style={{ width: '64%', height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, ' + primary + ', ' + accent + ')' }} />
+          </div>
+          <span style={{ font: '500 10px var(--font-mono)', color: sub }}>64%</span>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function harmonyWheel(palette) {

@@ -36,7 +36,7 @@ const ROWS = [
   },
   {
     dot: 'var(--emerald-500)', title: 'Palette in context', role: 'visualize',
-    body: 'Previews apply the palette to surfaces designers actually ship — a landing hero, a dashboard, an editorial page — plus two generative pieces. In Chromatic Currents the palette itself is the seed: every color becomes a body on an invisible hue wheel at its real hue angle, so the artwork renders the same harmony the panel explains in words.',
+    body: 'Previews apply the palette to surfaces designers actually ship — two landing heroes (one static, one with an animated lattice pulse), an interactive UI set with live hover and toggle states, a dashboard, an editorial page — plus generative studies like the Aurora ribbons. The movement doc below records the palette-seeded flow-field exploration (Chromatic Currents) that pushed the generative direction.',
     link: { href: REPO + '/blob/main/docs/product/p01-explained-palette/PSENSE_P01_F01_DS_ChromaticCurrents.md', label: 'The movement doc' },
   },
 ]
