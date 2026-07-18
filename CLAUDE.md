@@ -1,6 +1,6 @@
 # Operating Contract — Palette Sense
 
-> Operating contract for AI-assisted product work in this repo. Claude Code auto-loads it; in Cowork, mirror essentials into `memory/PROJECT_MEMORY.md`.
+> Operating contract for AI-assisted product work in this repo. Claude Code auto-loads it.
 
 ## Project
 

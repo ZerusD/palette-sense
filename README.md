@@ -2,8 +2,6 @@
 
 A portfolio + learning prototype: a minimalist color tool where the **AI's reasoning is the product**. You set a main color (plus optional accents), a mood, and how many colors you want; one AI call returns a harmonious palette and an always-on explanation of *why each color is there, what it does, and how it helps* — grounded in color theory.
 
-This folder is a **kit instance** bootstrapped from `../pm-starter-kit`.
-
 ## Why it's different (honestly)
 
 Generators like Coolors are faster and more powerful at *making* palettes — but they **paywall the reasoning** (per-color meaning/usage and the visualizer are Pro). Palette Sense isn't competing on generation breadth; it competes on **explained, intent-driven color**: the rationale is free, front-and-centre, and the designer stays in control. Plus a minimalist/edgy aesthetic and accessibility made legible to non-designers.

@@ -68,13 +68,9 @@ apps/palette-sense/
 
 Experience demonstrator, not production. After it works, grow the light PRD to full and keep the KB as a reusable artifact.
 
-## 10. Kickoff
-
-The ready-to-paste Claude Code prompt (Claude Design import + build instructions) lives in `CLAUDE_CODE_HANDOFF.md`.
-
 ---
 
 ## GATE
 
-- Stack chosen + scope ruthless. The kickoff handoff is self-contained once the Claude Design import line is filled in.
-- Before building: confirm the Claude Design export link is in the handoff; everything else (key, accounts) is ready.
+- Stack chosen + scope ruthless.
+- Before building: the Claude Design export imported; key and accounts ready.
