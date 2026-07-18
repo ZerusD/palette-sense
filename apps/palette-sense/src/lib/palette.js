@@ -20,7 +20,7 @@ export const MOODS = [
 export const PATTERNS = [
   ['landing', 'Landing'], ['dynamic', 'Dynamic'], ['uiset', 'UI set'],
   ['ui', 'Dashboard'], ['editorial', 'Editorial'], ['aurora', 'Aurora'],
-  ['type', 'Type'], ['bauhaus', 'Bauhaus'], ['blend', 'Blend'],
+  ['type', 'Type'], ['blend', 'Blend'],
 ]
 
 export const EXAMPLES = [

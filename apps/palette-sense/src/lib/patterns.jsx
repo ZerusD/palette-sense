@@ -189,17 +189,6 @@ export function buildPattern(pid, palette, surf) {
     })
     return svg(kids)
   }
-  if (pid === 'bauhaus') {
-    const kids = [h('rect', { key: 'bg', x: 0, y: 0, width: W, height: Hh, fill: surf })]
-    kids.push(h('circle', { key: 'c1', cx: 108, cy: 120, r: 78, fill: primary }))
-    kids.push(h('path', { key: 'half', d: 'M 250 40 A 80 80 0 0 1 250 200 Z', fill: accent }))
-    kids.push(h('path', { key: 'tri', d: 'M 298 58 L 380 58 L 339 150 Z', fill: secondary }))
-    kids.push(h('rect', { key: 'bar', x: 186, y: 30, width: 16, height: 190, fill: neutral }))
-    kids.push(h('circle', { key: 'c2', cx: 108, cy: 120, r: 30, fill: surf }))
-    kids.push(h('circle', { key: 'c3', cx: 339, cy: 198, r: 22, fill: primary }))
-    kids.push(h('path', { key: 'arc', d: 'M 36 212 A 72 72 0 0 1 108 140', fill: 'none', stroke: accent, strokeWidth: 14 }))
-    return svg(kids)
-  }
   if (pid === 'type') {
     const kids = [h('rect', { key: 'bg', x: 0, y: 0, width: W, height: Hh, fill: surf })]
     kids.push(h('text', { key: 'big', x: 36, y: 154, fill: ink, style: { fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: 132, letterSpacing: '-0.05em' } }, 'Aa'))
